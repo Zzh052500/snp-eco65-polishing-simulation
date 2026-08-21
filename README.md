@@ -17,11 +17,9 @@
 
 ## 展示
 
-![抛光仿真运行视频](docs/images/polishing_simulation.gif)
+本项目的实际运行演示视频：
 
-备用视角/操作录屏：
-
-![抛光仿真旋转视角](docs/images/polishing_simulation_rotation.gif)
+[点击查看 2026 年 8 月 21 日抛光仿真演示视频](docs/videos/polishing_demo_2026-08-21.mp4)
 
 ## 环境
 

@@ -19,9 +19,9 @@
 
 本项目的实际运行演示视频：
 
-## 备用视角/操作录屏
-
-[点击查看 2026 年 8 月 21 日抛光仿真演示视频](docs/videos/polishing_demo_2026-08-21.mp4)
+<video controls width="800" src="https://github.com/wjia051123-tech/snp-automate-2023-polishing-simulation/raw/refs/heads/main/docs/videos/polishing_demo_2026-08-21.mp4">
+你的浏览器不支持直接播放 MP4，请点击仓库中的视频文件查看。
+</video>
 
 ## 环境
 

@@ -19,7 +19,7 @@
 
 本项目的实际运行演示视频：
 
-![2026 年 8 月 21 日抛光仿真演示](docs/images/polishing_demo-2026-08-21.gif)
+![2026 年 8 月 21 日抛光仿真演示](docs/images/polishing_demo_2026-08-21.gif)
 
 完整 MP4 视频： [polishing_demo_2026-08-21.mp4](docs/videos/polishing_demo_2026-08-21.mp4)
 

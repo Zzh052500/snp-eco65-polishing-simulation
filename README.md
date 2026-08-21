@@ -89,3 +89,15 @@ docker image rm ghcr.io/ros-industrial-consortium/snp_automate_2023:jazzy-master
 ## 来源
 
 原始项目：`ros-industrial-consortium/snp_automate_2023`。本仓库是实习交接副本，保留原项目许可证和源码，并补充了本次实际仿真运行的配置、结果和说明。
+
+## ROS 2 Control 模拟硬件模式
+
+如需观察 RViz 中的虚拟机械臂按照规划轨迹运动，使用仓库提供的专用启动脚本：
+
+```bash
+./scripts/run_ros2_control_simulation.sh
+```
+
+该脚本通过 `docker/compose.ros2_control.override.yml` 将 `SNP_BYPASS_EXECUTION` 设置为 `false`，启动 `ros2_control_node`、`joint_trajectory_position_controller` 和 `joint_state_broadcaster`。该模式仍是虚拟仿真，不连接真实机器人。
+
+完整项目流程见 [docs/PROJECT_WORKFLOW_CN.md](docs/PROJECT_WORKFLOW_CN.md)。

@@ -1,4 +1,4 @@
-# SNP Automate 2023 抛光仿真交接项目
+# SNP Automate 2023 抛光仿真
 
 本仓库用于交接 **SNP Automate 2023 抛光仿真 Demo**。项目基于 ROS 2 Jazzy 和 Docker，在仿真模式下完成：
 

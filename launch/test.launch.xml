@@ -13,12 +13,12 @@
   <group if="$(var use_gui)">
     <node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui" name="joint_state_publisher_gui" output="screen">
       <remap from="joint_states" to="robot_joint_states"/>
-      <param name="zeros.joint_1_s" value="0.0"/>
-      <param name="zeros.joint_2_l" value="0.0"/>
-      <param name="zeros.joint_3_u" value="1.57"/>
-      <param name="zeros.joint_4_r" value="0.0"/>
-      <param name="zeros.joint_5_b" value="0.0"/>
-      <param name="zeros.joint_6_t" value="0.785"/>
+      <param name="zeros.joint1" value="0.0"/>
+      <param name="zeros.joint2" value="0.0"/>
+      <param name="zeros.joint3" value="0.0"/>
+      <param name="zeros.joint4" value="0.0"/>
+      <param name="zeros.joint5" value="0.0"/>
+      <param name="zeros.joint6" value="0.0"/>
     </node>
   </group>
 

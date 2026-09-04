@@ -1,0 +1,21 @@
+FROM ghcr.io/ros-industrial-consortium/snp_automate_2023:jazzy-master
+
+# 从本地 ros2_ws 中复制 rm_robot 相关包
+COPY src/ros2_rm_robot/rm_description /opt/snp_automate_2023/src/rm_description
+COPY src/ros2_rm_robot/rm_control /opt/snp_automate_2023/src/rm_control
+COPY src/ros2_rm_robot/rm_moveit2_config /opt/snp_automate_2023/src/rm_moveit2_config
+COPY src/ros2_rm_robot/rm_ros_interfaces /opt/snp_automate_2023/src/rm_ros_interfaces
+
+# 编译 rm_robot 相关包
+WORKDIR /opt/snp_automate_2023
+RUN . install/setup.bash && \
+    colcon build --packages-select \
+    rm_description \
+    rm_control \
+    rm_moveit2_config \
+    rm_ros_interfaces \
+    --symlink-install
+
+# 确保新的 setup.bash 被使用
+RUN echo "source /opt/snp_automate_2023/install/setup.bash" >> /etc/bash.bashrc
+

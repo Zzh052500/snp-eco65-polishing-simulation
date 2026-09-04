@@ -1,7 +1,8 @@
 <?xml version="1.0" ?>
-<robot name="motoman_hc10" xmlns:xacro="http://ros.org/wiki/xacro" xmlns:tesseract="https://github.com/tesseract-robotics/tesseract" tesseract:make_convex="true">
-  <xacro:include filename="$(find motoman_hc10_support)/urdf/hc10dt_macro.xacro" />
-  <xacro:motoman_hc10dt prefix=""/>
+<robot name="rm_eco65_workcell" xmlns:xacro="http://ros.org/wiki/xacro" xmlns:tesseract="https://github.com/tesseract-robotics/tesseract" tesseract:make_convex="true">
+  <!-- 直接引入本地的 eco65 URDF 文件 -->
+  <xacro:include filename="$(find snp_automate_2023)/urdf/rm_description/rm_eco65.urdf.xacro" />
+  <xacro:arg name="link6_type" default="Link6"/>
 
   <xacro:include filename="$(find snp_automate_2023)/urdf/ros2_control.xacro"/>
   <xacro:snp_ros2_control name="snp_ros2_control" prefix=""/>
@@ -68,7 +69,7 @@
 
   <joint name="table_to_base" type="fixed">
     <parent link="table"/>
-    <child link="base_link"/>
+    <child link="baselink"/>
     <origin xyz="-0.61 0 0.723" rpy="0 0 0"/>
   </joint>
 
@@ -152,7 +153,7 @@
   </link>
 
   <joint name="tool0_to_ee" type="fixed">
-    <parent link="tool0"/>
+    <parent link="Link6"/>
     <child link="ee"/>
     <origin rpy="0.0 0.0 ${radians(45)}"/>
   </joint>
@@ -167,7 +168,7 @@
 
   <link name="camera_frame"/>
   <joint name="tool0_to_camera" type="fixed">
-    <parent link="flange"/>
+    <parent link="Link6"/>
     <child link="camera_frame"/>
     <origin xyz="${camera_cal['camera_mount_to_camera_pos']['x']} ${camera_cal['camera_mount_to_camera_pos']['y']} ${camera_cal['camera_mount_to_camera_pos']['z']}"
             rpy="${camera_cal['camera_mount_to_camera_rpy']['x']} ${camera_cal['camera_mount_to_camera_rpy']['y']} ${camera_cal['camera_mount_to_camera_rpy']['z']}" />
@@ -188,11 +189,8 @@
   </link>
 
   <joint name="sand_tcp_joint" type="fixed">
-    <parent link="tool0"/>
-<!--    <origin xyz="-0.158 -0.158 0.123" rpy="0.0 ${radians(90)} ${radians(-135)}"/>-->
+    <parent link="Link6"/>
     <origin xyz="-0.149 ${-0.149 - 0.005} 0.083" rpy="0.0 ${radians(-90)} ${radians(-135)}"/>
-<!--    <parent link="ee"/>-->
-<!--    <origin xyz="${-0.186 - 0.038} 0.0 ${0.08325}" rpy="0.0 ${radians(90)} 0.0"/>-->
     <child link="sand_tcp"/>
   </joint>
 </robot>

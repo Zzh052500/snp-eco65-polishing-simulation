@@ -6,12 +6,12 @@
   <arg name="mesh_file" default="$(find-pkg-share snp_automate_2023)/meshes/part_scan.ply"/>
   <arg name="scan_trajectory_file" default="$(find-pkg-share snp_automate_2023)/config/scan_traj.yaml"/>
   <arg name="verbose" default="True"/>
-  <arg name="scan_disabled_contact_links" default="[table, base_link, floor]"/>
+  <arg name="scan_disabled_contact_links" default="[table, baselink, floor]"/>
   <arg name="scan_reduced_contact_links" default="[sand_tcp]"/>
   <arg name="robot_description_file" default="$(find-pkg-share snp_automate_2023)/urdf/workcell.xacro"/>
   <arg name="robot_description" default="$(command 'xacro $(var robot_description_file) ros_distro:=$(env ROS_DISTRO)')"/>
   <arg name="robot_description_semantic" default="$(command 'cat $(find-pkg-share snp_automate_2023)/config/workcell.srdf')"/>
-  <arg name="reference_frame" default="base_link"/>
+  <arg name="reference_frame" default="baselink"/>
   <!-- Set the default name of the follow joint trajectory action depending on whether the robot is simulated (i.e., ros2_control) or real hardware is being used -->
   <arg name="follow_joint_trajectory_action" default="joint_trajectory_position_controller/follow_joint_trajectory" if="$(var sim_robot)"/>
   <arg name="follow_joint_trajectory_action" default="joint_trajectory_controller/follow_joint_trajectory" unless="$(var sim_robot)"/>
@@ -30,7 +30,7 @@
     <arg name="camera_frame" value="camera_color_optical_frame"/>
     <arg name="camera_mount_frame" value="motoros2/r1/flange"/>
     <arg name="target_frame" value="cal_target_frame"/>
-    <arg name="target_mount_frame" value="base_link"/>
+    <arg name="target_mount_frame" value="baselink"/>
   </include>
 
   <!-- Trajectory Preview -->
@@ -51,11 +51,11 @@
     <!-- General -->
     <param name="follow_joint_trajectory_action" value="$(var follow_joint_trajectory_action)"/>
     <param name="freespace_motion_group" value="manipulator"/>
-    <param name="controller_joint_names" value="['joint_1_s', 'joint_2_l', 'joint_3_u', 'joint_4_r', 'joint_5_b', 'joint_6_t']"/>
-    <param name="start_state_replacement_tolerance" value="$(eval 'radians(0.1)')"/>
+    <param name="controller_joint_names" value="['joint1', 'joint2', 'joint3', 'joint4', 'joint5', 'joint6']"/>
+    <param name="start_state_replacement_tolerance" value="$(eval 'radians(2.0)')"/>
     <!-- Home -->
-    <param name="home_state_joint_names" value="['joint_1_s', 'joint_2_l', 'joint_3_u', 'joint_4_r', 'joint_5_b', 'joint_6_t']"/>
-    <param name="home_state_joint_positions" value="[0.0, 0.0, 1.57, 0.0, 0.0, 0.785]"/>
+    <param name="home_state_joint_names" value="['joint1', 'joint2', 'joint3', 'joint4', 'joint5', 'joint6']"/>
+    <param name="home_state_joint_positions" value="[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]"/>
     <!-- Frames -->
     <param name="reference_frame" value="$(var reference_frame)"/>
     <param name="tcp_frame" value="sand_tcp"/>
@@ -139,8 +139,8 @@
     </node>
   </group>
   <group if="$(var sim_robot)">
-    <!-- Connect flange frame to robot-published flange frame -->
-    <node pkg="tf2_ros" exec="static_transform_publisher" name="flange_to_robot_flange" args="--frame-id flange --child-frame-id motoros2/r1/flange"/>
+    <!-- Connect eco65 arm-end (Link6) frame to robot-published flange frame -->
+    <node pkg="tf2_ros" exec="static_transform_publisher" name="flange_to_robot_flange" args="--frame-id Link6 --child-frame-id motoros2/r1/flange"/>
 
     <!-- Simulate MotoROS2 services -->
     <node pkg="motoros2_behavior_tree" exec="motoros2_simulator.py"/>

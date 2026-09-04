@@ -8,7 +8,7 @@
         </xacro:if>
       </hardware>
 
-      <joint name="${prefix}joint_1_s">
+      <joint name="${prefix}joint1">
         <command_interface name="position">
           <param name="min">${radians(-180)}</param>
           <param name="max">${radians(180)}</param>
@@ -21,7 +21,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
-      <joint name="${prefix}joint_2_l">
+      <joint name="${prefix}joint2">
         <command_interface name="position">
           <param name="min">${radians(-180)}</param>
           <param name="max">${radians(180)}</param>
@@ -34,7 +34,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
-      <joint name="${prefix}joint_3_u">
+      <joint name="${prefix}joint3">
         <command_interface name="position">
           <param name="min">${radians(-5)}</param>
           <param name="max">${radians(355)}</param>
@@ -45,11 +45,11 @@
         </command_interface>
         <command_interface name="acceleration"/>
         <state_interface name="position">
-          <param name="initial_value">${radians(90)}</param>
+          <param name="initial_value">0.0</param>
         </state_interface>
         <state_interface name="velocity" />
       </joint>
-      <joint name="${prefix}joint_4_r">
+      <joint name="${prefix}joint4">
         <command_interface name="position">
           <param name="min">${radians(-180)}</param>
           <param name="max">${radians(180)}</param>
@@ -62,7 +62,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
-      <joint name="${prefix}joint_5_b">
+      <joint name="${prefix}joint5">
         <command_interface name="position">
           <param name="min">${radians(-180)}</param>
           <param name="max">${radians(180)}</param>
@@ -75,7 +75,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
-      <joint name="${prefix}joint_6_t">
+      <joint name="${prefix}joint6">
         <command_interface name="position">
           <param name="min">${radians(-180)}</param>
           <param name="max">${radians(180)}</param>
@@ -86,7 +86,7 @@
         </command_interface>
         <command_interface name="acceleration"/>
         <state_interface name="position">
-          <param name="initial_value">0.785</param>
+          <param name="initial_value">0.0</param>
         </state_interface>
         <state_interface name="velocity"/>
       </joint>

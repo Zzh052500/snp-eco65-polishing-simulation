@@ -1,7 +1,9 @@
 name: snp-automate-2023-polishing-simulation
 services:
   snp_automate_2023_sim:
-    image: ghcr.io/ros-industrial-consortium/snp_automate_2023:jazzy-master
+    build:
+      context: /home/liangfx/ros2_ws
+      dockerfile: /home/liangfx/snp/docker/Dockerfile.custom
     container_name: snp_automate_2023_sim
     environment:
       HOME: /workspace/snp_home
@@ -12,6 +14,7 @@ services:
       SNP_SIM_VISION: "true"
       SNP_BYPASS_EXECUTION: "true"
       ROS_LOG_DIR: /workspace/snp_home/.ros
+      ROS_DOMAIN_ID: "7"
     user: "${CURRENT_UID:-1000:1000}"
     stdin_open: true
     tty: true
@@ -23,3 +26,5 @@ services:
       - ../config:/workspace/config:ro
       - ../config:/opt/snp_automate_2023/install/snp_automate_2023/share/snp_automate_2023/config:ro
       - ../launch:/opt/snp_automate_2023/install/snp_automate_2023/share/snp_automate_2023/launch:ro
+      - ../urdf:/opt/snp_automate_2023/install/snp_automate_2023/share/snp_automate_2023/urdf:ro
+      - ../meshes:/opt/snp_automate_2023/install/snp_automate_2023/share/snp_automate_2023/meshes:ro

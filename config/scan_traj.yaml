@@ -1,7 +1,7 @@
 header: {stamp: {sec: 0, nanosec: 0}, frame_id: ""}
-joint_names: ['joint_1_s', 'joint_2_l', 'joint_3_u', 'joint_4_r', 'joint_5_b', 'joint_6_t']
+joint_names: ['joint1', 'joint2', 'joint3', 'joint4', 'joint5', 'joint6']
 points:
-  - positions: [0.0, 0.0, 1.57, 0.0, 0.0, 0.785]
+  - positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     velocities: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     accelerations: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     effort: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -64,7 +64,7 @@ points:
     time_from_start:
       sec: 52
       nanosec: 0
-  - positions: [0.0, 0.0, 1.57, 0.0, 0.0, 0.785]
+  - positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     velocities: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     accelerations: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     effort: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

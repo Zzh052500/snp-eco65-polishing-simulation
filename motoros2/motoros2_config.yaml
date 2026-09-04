@@ -169,7 +169,7 @@ tf_frame_prefix: motoros2/
 # Example: R1+B1+R2+S1 system
 #
 joint_names:
-  - [joint_1_s, joint_2_l, joint_3_u, joint_4_r, joint_5_b, joint_6_t]
+  - [joint1, joint2, joint3, joint4, joint5, joint6]
 # - [r1_s_axis, r1_l_axis, r1_u_axis, r1_r_axis, r1_b_axis, r1_t_axis]
 # - [r2_s_axis, r2_l_axis, r2_u_axis, r2_r_axis, r2_b_axis, r2_t_axis, r2_e_axis]
 # - [b1_axis]

@@ -94,17 +94,17 @@ docker logs --tail=100 snp_automate_2023_sim
 | `docker/compose.sim.yml` + `docker/Dockerfile.custom` | eco65 自定义镜像与挂载配置 |
 | `scripts/eco65_*.py` | FK / IK / 工具路径 / 摆放搜索等数值分析脚本 |
 
-## 当前状态（截至 2026-09-04）
+## 当前状态（2026-09-04 更新）
 
 - ✅ eco65 模型正常加载；TF 树 `baselink→Link1..Link6` 完整，末端 frame 与数值 FK 毫米级吻合（`scripts/eco65_fk.py`）
 - ✅ 扫描轨迹正确执行（不再钻到桌下）；重建后工件正常出现
-- ✅ 圈选 ROI + Plan Tool Paths 成功（47 个点，**位置 IK 47/47**）
-- ⚠️ **卡点：`GenerateMotionPlanService` FAILED** —— 工具路径的**姿态**需求在 eco65 当前底座朝向 + 工具安装位姿（`sand_tcp` RPY 继承自 hc10）下不可达：完整位姿 IK **0/47**。
+- ✅ 圈选 ROI + Plan Tool Paths 成功；**靠机械臂一侧半圆区域 Generate Motion Plan 已通过**（求解器 `OPT_CONVERGED`、无碰撞、样条时间参数化成功）——确认 eco65 的 IK / 运动规划链路本身正常，此前整条 tool path 位姿 IK 0/47 **不是求解器假阴性**
+- ⚠️ 其余区域**姿态可达性受限**：需沿 mesh 法线（~32° 大倾角）贴附的面，在现底座朝向 + `sand_tcp` 安装 RPY（继承自 hc10）下仍不可达
 
-**下一步方向**（详见 `PROGRESS_2026-09-03.md` §四/§五）：
-1. 先做 IK 求解器**地真验证**，排除 pose_ik 假阴性；
-2. 若确为姿态不可达 → 重新设计 `sand_tcp_joint` 安装 RPY，或给底座**加俯仰/偏航旋转**再搜可达摆放（纯平移不改变相对 baselink 的姿态需求）；
-3. 找到能"带姿态打磨"的布局 → 改 `table_to_base` → 重启容器 → 重新框 ROI → 验证 Generate Motion Plan 通过 → 走通执行打磨，闭环整个流程。
+**下一步方向**（详见 `PROGRESS_2026-09-03.md` §三·1/§四/§五）：
+1. 先把已可达半圆区域的「执行打磨」跑通，验证闭环最后一环；
+2. 重新设计 `sand_tcp_joint` 安装 RPY，或给底座**加俯仰/偏航旋转**再搜可达摆放（纯平移不改变相对 baselink 的姿态需求），提升整面姿态可达率；
+3. 找到能"整面带姿态打磨"的布局 → 改 `table_to_base` → 重启容器 → 重新框 ROI → 走通执行打磨，闭环整个流程。
 
 ## 目录结构
 

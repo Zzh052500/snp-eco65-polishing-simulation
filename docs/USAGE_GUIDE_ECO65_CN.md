@@ -116,15 +116,17 @@ docker logs --tail=100 snp_automate_2023_sim
   (Link6 / camera_frame / sand_tcp)与数值 FK 毫米级吻合(用 `scripts/eco65_fk.py` 验证);
 - ✅ 扫描轨迹正确执行(不再钻到桌子下方);
 - ✅ 重建后工件正常出现;圈选 ROI + Plan Tool Paths 成功;
-- ⚠️ **未解决:Generate Motion Plan 失败**(`GenerateMotionPlanService -> FAILED`)。
-  已定位到**姿态可达性**问题:工具路径的位置已全部可达(位置 IK 47/47),但
-  **完整位姿(位置+姿态)IK 0/47**——工具要沿 mesh 法线(~32° 倾角)压在工件表面,
-  eco65 当前底座朝向 + 工具安装位姿(sand_tcp 安装 RPY 继承自 hc10 的
+- ✅ **靠机械臂一侧半圆区域已能规划打磨**(2026-09-04 下午):在该区域框选 ROI 后
+  `GenerateMotionPlanService -> SUCCESS`(求解器 `OPT_CONVERGED`、无碰撞、样条时间
+  参数化成功)。说明 eco65 的 IK / 运动规划链路本身正常——此前整条 tool path 位姿
+  IK 0/47 **不是求解器假阴性**,而是路径里含大倾角贴附的点超可达。姿态可达性是
+  **区域相关**的。
+- ⚠️ **剩余区域姿态不可达**:需沿 mesh 法线(~32°)大倾角压磨的面仍 `IK 0/47`。
+  当前底座朝向 + 工具安装位姿(`sand_tcp` 安装 RPY 继承自 hc10 的
   `rpy=(0,-90°,-135°)`)达不到这些姿态。**下一步方向**:
-  1. 先做 IK 求解器地真验证(排除脚本 bug);
-  2. 若确为姿态不可达 → 重新设计 `sand_tcp_joint` 安装 RPY,或给底座加俯仰/偏航
-     旋转找可达摆放;
-  3. 找到可达布局后重测运动规划。
+  1. 先把已可达半圆区域的「执行打磨」跑通看效果;
+  2. 重新设计 `sand_tcp_joint` 安装 RPY,或给底座加俯仰/偏航旋转找可达摆放;
+  3. 找到可达布局后整面重测运动规划。
 
 > 排查脚本:`scripts/eco65_ik.py`(位置 IK)、`scripts/eco65_toolpath_analysis.py`
 > (整条 tool path 位姿可达性分析)。改动后请重启容器并在 RViz 重新框 ROI。

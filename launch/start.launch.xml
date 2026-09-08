@@ -14,7 +14,7 @@
   <arg name="reference_frame" default="baselink"/>
   <!-- Set the default name of the follow joint trajectory action depending on whether the robot is simulated (i.e., ros2_control) or real hardware is being used -->
   <arg name="follow_joint_trajectory_action" default="joint_trajectory_position_controller/follow_joint_trajectory" if="$(var sim_robot)"/>
-  <arg name="follow_joint_trajectory_action" default="joint_trajectory_controller/follow_joint_trajectory" unless="$(var sim_robot)"/>
+  <arg name="follow_joint_trajectory_action" default="rm_group_controller/follow_joint_trajectory" unless="$(var sim_robot)"/>
 
   <!-- URDF, Rviz -->
   <include file="$(find-pkg-share snp_automate_2023)/launch/test.launch.xml">
@@ -22,6 +22,7 @@
     <arg name="robot_description_semantic" value="$(var robot_description_semantic)"/>
     <arg name="rviz" value="False"/>
     <arg name="use_gui" value="$(var bypass_execution)"/>
+    <arg name="sim_robot" value="$(var sim_robot)"/>
   </include>
 
   <!-- Calibration Publisher -->

@@ -190,6 +190,12 @@
     <!-- Connect URDF robot base frame with robot-published base frame -->
     <node pkg="tf2_ros" exec="static_transform_publisher" name="base_to_robot_base" args="--frame-id base --child-frame-id motoros2/world"/>
 
+    <!-- 方案A：真机分支复用 motoros2_simulator 提供 Enable/Disable 的开关服务。
+         BT 的 Enable Robot(StartPointQueueMode→start_point_queue_mode)与 Disable
+         (Trigger→stop_traj_mode)只是门控；真机实际运动走 rm_group_controller FJT。
+         该节点返回 READY，不给点队列，正好满足 RM 场景（不需要 motoros2 类型，容器内已有）。 -->
+    <node pkg="motoros2_behavior_tree" exec="motoros2_simulator.py"/>
+
     <node pkg="motoros2_fjt_pt_queue_proxy" exec="server" name="fjt_proxy">
       <param name="max_retries" value="200"/>
       <param name="busy_wait_time" value ="0.1"/>

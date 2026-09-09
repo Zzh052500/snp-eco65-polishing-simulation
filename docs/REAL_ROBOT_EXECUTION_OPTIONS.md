@@ -109,4 +109,6 @@ SNP_Automate_2023 整套是为 **Motoman 机器人 + MotoROS2** 设计的。真�
 
 **结论**：真机执行骨干放弃 SNP 自带 BT，改用 eco65 原生 MoveIt（已证实能驱动真机）；SNP 保留做离线规划/打磨轨迹生成。相关工具：`scripts/start_real_moveit.sh`（一键复现阶段2）、`scripts/send_fjt.py`（直发 FJT）。
 
+**根因定性**：SNP 整套（规划+tesseract+RViz BT）是给 motoman + 仿真工作台（URDF 带 floor/工作台/打磨头/ros2_control 标签）做的；真机换纯官方 URDF 后镜像内编译库半残（插件 `Bad file descriptor`）。把 SNP 主流程完整搬到真机投入大且卡在无源码处 → **不再投入**。"绕过 SNP 自带 motoros2、用 eco65 自己 driver/control 做真机"已被实机证明成立，真机执行通道 = eco65 原生。
+
 本文件的方案 A/B 评估仍可作为参考，但**不再作为真机 BT 执行的主力路线**——除非未来拿到 SNP 源码、能在真机 URDF 上修好 planning server 与 BT executor，才有回头价值。

@@ -10,6 +10,7 @@ services:
       DISPLAY: ${DISPLAY:-:0}
       QT_QPA_PLATFORM: xcb
       QT_X11_NO_MITSHM: "1"
+      XDG_RUNTIME_DIR: /tmp/runtime-1006
       SNP_SIM_ROBOT: "false"
       SNP_SIM_VISION: "true"
       SNP_BYPASS_EXECUTION: "false"

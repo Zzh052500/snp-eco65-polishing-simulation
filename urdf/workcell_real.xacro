@@ -1,0 +1,5 @@
+<?xml version="1.0" ?>
+<robot name="rm_eco65_workcell" xmlns:xacro="http://ros.org/wiki/xacro" xmlns:tesseract="https://github.com/tesseract-robotics/tesseract" tesseract:make_convex="true">
+  <!-- 真机模式：直接用 RM 官方 URDF -->
+  <xacro:include filename="$(find rm_description)/urdf/rm_eco65.urdf" />
+</robot>

@@ -1,127 +1,126 @@
-# SNP 打磨仿真 · RM-ECO65 版（独立项目）
+# SNP · RM-ECO65 真机迁移 —— 阶段性总结
 
-本仓库是把 **SNP Automate 2023 打磨仿真**中的机械臂从 Motoman HC10 **替换为睿尔曼 RM-ECO65（`rm_eco65`）** 之后的独立版本。设计上**沿用 `ros2_rm_robot` 代码栈**（eco65 自身的 ROS 原生栈），让仿真结果能够平滑地**迁移到真实 eco65 机器人**上运行。
+> **分支 `zhenjiqianyi` · 阶段记录 2026-09-09**（真机迁移第 1~2 天 09-08/09-09）
+> 本 README 是**真机迁移这一阶段**的权威快照。迁移前的仿真阶段（eco65 换臂打磨仿真闭环）见
+> [`docs/PROGRESS_2026-09-03.md`](docs/PROGRESS_2026-09-03.md) 与 [`docs/USAGE_GUIDE_ECO65_CN.md`](docs/USAGE_GUIDE_ECO65_CN.md)
+> （旧版 README 内容已随 git 历史完整保留，最末提交 09-04）。
 
-> 派生于 `ros-industrial-consortium/snp_automate_2023` 仿真 Demo，保留其许可证与源码，在此之上以 eco65 为目标做了整体改造。
+把 SNP Automate 2023 打磨系统从 **Motoman + MotoROS2** 换到 **睿尔曼 RM-ECO65**，并把仿真流程搬到**真机**。核心判断贯穿全程：**绕开 SNP 自带 motoros2，用 eco65 自己的 driver/control 驱动真机。**
 
-## 📚 快速导航（先读这两篇）
+---
 
-| 文档 | 内容 |
+## 一、现状盘点（2026-09-09 硬验收结果）
+
+| 目标 | 状态 |
 |---|---|
-| [`docs/PROGRESS_2026-09-03.md`](docs/PROGRESS_2026-09-03.md) | **进度总记录（权威）**：已完成改动、已修问题、当前卡点与下一步计划 |
-| [`docs/USAGE_GUIDE_ECO65_CN.md`](docs/USAGE_GUIDE_ECO65_CN.md) | **eco65 使用指南**：镜像构建、启动/重启、逐按钮操作流程、常见问题 |
+| eco65 真机动（生态 MoveIt / 直连 FJT） | ✅ **已实机验证 SUCCEEDED**（阶段 2 硬验收过） |
+| SNP Enable/Disable 门控服务 | ✅ 已打通（方案 A，CLI 实测 READY） |
+| SNP 规划服务器在真机 URDF 下起来 | ❌ `Failed to parse URDF` / tesseract 插件加载失败 |
+| SNP RViz BT 执行引擎在真机跑 | ❌ `spin_some` 重入崩，无 Go Home |
 
-其他参考：原版完整流程 [`docs/PROJECT_WORKFLOW_CN.md`](docs/PROJECT_WORKFLOW_CN.md)、运行指南 [`docs/RUN_GUIDE_CN.md`](docs/RUN_GUIDE_CN.md)、hc10 原版对照 [`docs/USAGE_GUIDE_ORIGINAL_HC10_CN.md`](docs/USAGE_GUIDE_ORIGINAL_HC10_CN.md)。
+**根因性质**：SNP 整套（规划 + tesseract + RViz BT）是给 **motoman + 仿真工作台**（带 floor/工作台/打磨头/ros2_control 标签的 URDF）做的。真机换纯官方 URDF + 这些编译库在镜像里本来就是半残（插件 `Bad file descriptor`），想在真机上把 SNP 主流程完整跑起来，投入可能很大、且卡在看不到源码的地方 → **不再投入**。
 
-## 项目目标
+**方向定案（用户认可）**：**"绕过 SNP 自带 motoros2、用 eco65 自己的 driver/control 做真机" → 成立**（机械臂动了）。真正稳的真机执行通道是 **eco65 原生链路**。SNP 只做离线规划 / 打磨轨迹生成。
 
-1. 在仿真中用 eco65 跑通「扫描 → 重建 → 工具路径规划 → 运动规划 → 执行打磨」完整闭环；
-2. 全程保持 `ros2_rm_robot` 兼容（方案 2），仿真结果可平移到真实 eco65；
-3. 闭环后在真机上复现同一套打磨流程。
+---
 
-## 与 hc10 原版的差异
+## 二、这两天做了什么（09-08 → 09-09，逐提交）
 
-| 项目 | hc10 原版 | 本版 eco65 |
-|---|---|---|
-| 机器人 | Motoman HC10 | 睿尔曼 RM-ECO65（`rm_eco65`） |
-| URDF 名称 / 根坐标 | `motoman_hc10` / `base_link` | `rm_eco65_workcell` / `baselink` |
-| 关节名 | `joint_1_s` … `joint_6_t` | `joint1` … `joint6` |
-| 运动链（IK） | `base_link → tool0` | `baselink → Link6` |
-| 安装 | hc10 自带 | `table_to_base` 固定关节 `xyz="-0.61 0 0.723"` |
-| 法兰 / 相机挂点 | `flange` | `Link6`（flange → `motoros2/r1/flange`） |
-| 仿真镜像 | 官方 `ghcr.io/…:jazzy-master` | 本地自定义镜像（`docker/Dockerfile.custom`） |
-| 工件模型 | 原位置 | `meshes/part_scan.ply` 整体沿 x 平移 **dx=-0.32**（eco65 臂长更短，移近才可达；原始备份 `/tmp/part_scan_backup.ply`） |
+### 📅 09-08 —— 真机迁移起步（`0ee9b7b`）
+**域隔离 + 最小驱动 + 单机械臂**
+- `docker/compose.real.yml`：真机容器（DOMAIN_ID=10，仿真保持 7，两域互不可见）
+- `scripts/start_real.sh`：宿主 `rm_driver` + `rm_control` + 真机容器一键启动
+- `launch/` 加 `sim_robot` 门控（`joint_state_publisher` 按真机/仿真开关）
+- `urdf/.../rm_eco65.urdf.xacro` 小改 → 真机侧用**纯官方 eco65 模型**
 
-eco65 运动学：**`baselink` 为根**，6 个旋转关节 `baselink→Link1(j1)→…→Link6(j6)`；末端 frame（`tool0_to_ee` / `tool0_to_camera` / `sand_tcp`）挂在 Link6 上，`sand_tcp_joint` 安装位姿继承 hc10 的 `rpy=(0,-90°,-135°)`。
+### 📅 09-09 上午 —— 阶段 1 ✅ 真机 RViz 显示修复（`e140fc4`）
+真机在 RViz 里显示的**始终是仿真环境**而非真机模型 → 根因：真机分支没切换 URDF。
+- `launch/start.launch.xml`：`robot_description_file` 按 `sim_robot` 分支 → 真机加载 `workcell_real.xacro`（纯官方 rm_eco65.urdf，**无 floor/工作台/打磨头/ros2_control 标签**）
+- `config/app_real.rviz`（新建）：真机专用 RViz，Fixed Frame=`baselink`（真机 URDF 无 floor），禁用 Open3D Mesh
+- `docker/compose.real.yml`：加 `XDG_RUNTIME_DIR` 修 GUI 黑屏
+- 修复 GUI 踩坑经验见 memory：`/tmp/runtime-1006` + `QT_QPA_PLATFORM=xcb`
 
-## 软件工作流（与 hc10 版一致的面板）
+### 📅 09-09 下午 —— 阶段 2 ✅ 真机实动 + 路线转折（`435f702` `f3c088b`）
 
-```text
-RViz2 + SNPApplication
-  → Initialize
-  → 批准扫描运动规划 / 执行扫描（eco65 关节空间轨迹）
-  → 工业重建，生成 results_mesh.ply
-  → 圈选 ROI + 设置 Start Point（TPP 工具）
-  → Plan Tool Paths
-  → Generate Motion Plan
-  → 批准并执行打磨轨迹
+**① eco65 原生 MoveIt 驱动真机实动（硬验收通过）**
+生态自带栈直接上真机：eco65 RSP + `real_moveit_demo`（move_group + MoveIt RViz，`moveit_manage_controllers=false` → **复用已在跑的宿主 rm_control**，不重复起驱动）。RViz 拖末端 marker → **Plan & Execute → 真机真的动了**，日志铁证（`logs/eco65_moveit.log`）：
+```
+Plan and Execute request accepted
+sending trajectory to rm_group_controller
+rm_group_controller started execution / Goal request accepted!
+Controller 'rm_group_controller' successfully finished
+Completed trajectory execution with status SUCCEEDED
+```
+顺带验证**拖动示教反馈链**：真机手拖 → `/joint_states` → RSP → RViz 模型实时跟随。
+
+**② 尝试 SNP RViz BT 主流程 → 被 3 个编译层问题堵死**
+- 补 Enable/Disable 门控（方案 A：真机分支复用 `motoros2_simulator`，`StartPointQueueMode`→READY、`Trigger`→success，CLI 实测通过）
+- 但继续推进即撞墙：RViz 点 Execute Motion Plan → `spin_some() called while already spinning` 重入崩；`GetCurrentJointState`/`UpdateTrajectoryStartState` 只有二进制无源码；无 Go Home。且 SNP 规划服务器（`snp_motion_planning_node`）在真机 URDF 下起不来（`Failed to parse URDF` / tesseract 插件 `Bad file descriptor`）
+
+**③ 用户拍板：转 eco65 原生路线**
+放弃把 SNP BT 主流程硬塞上真机；真机执行 = **eco65 原生**（已证会动），SNP 只做离线规划。固化产物见下表，根因与决策全量写入 memory 与 [`docs/REAL_ROBOT_EXECUTION_OPTIONS.md`](docs/REAL_ROBOT_EXECUTION_OPTIONS.md)（§六 最终决策）。
+
+---
+
+## 三、真机链路架构
+
+```
+[真机执行通道 = eco65 原生]
+host  rm_driver (UDP 8089) + rm_control            # 提供 /rm_group_controller/follow_joint_trajectory (FJT)
+   └─ eco65 MoveIt RViz(拖拽规划) → move_group → rm_group_controller FJT → rm_driver → 真机电机   ✅ SUCCEEDED
+        (moveit_manage_controllers=false，复用宿主 rm_control，不重复起驱动)
+
+[SNP 只做离线规划]   SNP 容器（DOMAIN 10 / sim_robot=false）
+   扫 mesh → noether 工具路径 → 打磨轨迹          # 不与 eco65 MoveIt 同时起（避免 /robot_description、TF 双发布）
 ```
 
-## 环境与启动
+关键前提：真机控制器上电、网络通（TCP .18:8080 / UDP .95:8089）、急停在手；**真机实际在零位时**关节 `/joint_states` ≈ 全 0。
 
-eco65 仿真容器 `snp_automate_2023_sim` 由本地 `docker/Dockerfile.custom` 构建：以官方
-`ghcr.io/ros-industrial-consortium/snp_automate_2023:jazzy-master` 为基础，把宿主
-`/home/liangfx/ros2_ws/src/ros2_rm_robot` 下的 `rm_description / rm_control /
-rm_moveit2_config / rm_ros_interfaces` 拷入并 `colcon build`。
+---
 
-**首次构建 + 启动：**
-
-```bash
-cd /home/liangfx/snp
-docker compose -f docker/compose.sim.yml build   # 构建含 eco65 rm 包的镜像
-./scripts/restart_demo.sh                          # 删旧容器 + compose up
-```
-
-**日常重启**（改了 `config/launch/urdf/meshes` 想重新加载）：
-
-```bash
-./scripts/restart_demo.sh
-```
-
-> `compose.sim.yml` 会把宿主 `/home/liangfx/snp/{config,launch,urdf,meshes}` **实时挂载**进容器，
-> 所以这些目录的改动**无需重编镜像**，重启容器即生效；只有改了 `ros2_ws` 里的 rm 源码才需要重 build 镜像。
-
-查看容器 / 节点：
-
-```bash
-docker ps --filter name=snp_automate_2023_sim
-docker exec snp_automate_2023_sim bash -lc 'source /opt/ros/jazzy/setup.bash && ros2 node list'
-docker logs --tail=100 snp_automate_2023_sim
-```
-
-## 关键文件（eco65 版改动集中在这）
+## 四、本阶段产物（工具 / 改动，均已入库）
 
 | 文件 | 作用 |
 |---|---|
-| `urdf/workcell.xacro` | 引入 eco65 自包含模型；`table_to_base` 固定 baselink 到桌面坐标 |
-| `urdf/rm_description/rm_eco65.urdf.xacro` | eco65 本体模型（源自 rm_description，mesh 路径已改为本仓库 `meshes/`） |
-| `launch/start.launch.xml` | `reference_frame / target_mount_frame = baselink`、`scan_disabled_contact_links=[table,baselink,floor]`、home 全零、`controller_joint_names=joint1..6` |
-| `config/workcell_plugins.yaml` | IK 插件 `base_link: baselink` / `tip_link: Link6` |
-| `config/workcell.srdf` | robot `rm_eco65_workcell`，chain `baselink→Link6` |
-| `config/scan_traj.yaml` | eco65 关节空间 14 点扫描轨迹（首尾归零） |
-| `config/controllers.yaml` / `motoros2/motoros2_config.yaml` | 关节 `joint1..6` |
-| `meshes/part_scan.ply` | 平移 dx=-0.32 后的工件模型（重建的"真相"来源） |
-| `docker/compose.sim.yml` + `docker/Dockerfile.custom` | eco65 自定义镜像与挂载配置 |
-| `scripts/eco65_*.py` | FK / IK / 工具路径 / 摆放搜索等数值分析脚本 |
+| `scripts/start_real.sh` | 宿主 `rm_driver`+`rm_control` + SNP 真机容器启动（阶段 1 入门） |
+| `scripts/start_real_moveit.sh` | **一键复现阶段 2**：检 FJT action → `docker stop` SNP 容器 → 起 eco65 RSP + MoveIt（`--stop` 反杀、不动驱动） |
+| `scripts/send_fjt.py` | 绕过 BT 直发 FJT 给 `/rm_group_controller`（归位 / 指定 6 关节弧度），`ROS_DOMAIN_ID=10 python3 scripts/send_fjt.py [j1..j6]` |
+| `launch/start.launch.xml` | 真机分支：`workcell_real.xacro` + `app_real.rviz` + `rm_group_controller` FJT + `motoros2_simulator`（Enable/Disable 门控） |
+| `config/app_real.rviz` | 真机 RViz：Fixed Frame=`baselink`，禁 Open3D Mesh |
+| `urdf/workcell_real.xacro` | 真机纯官方 rm_eco65.urdf（无工作台标签） |
+| `docker/compose.real.yml` | 真机容器：DOMAIN 10、3 个 env var、XDG_RUNTIME_DIR |
+| `docs/REAL_ROBOT_EXECUTION_OPTIONS.md` | 方案 A/B/C 评估 + §六 最终决策 / 根因定性 |
 
-## 当前状态（2026-09-04 更新）
+> 明确**不入库**：`src/`（RM 嵌套 git 仓库）、`runtime/**`（运行产物 results_mesh.ply 等）、`logs/`。`restart_demo.sh` 的 CRLF/权限噪音改动未纳入本阶段提交。
 
-- ✅ eco65 模型正常加载；TF 树 `baselink→Link1..Link6` 完整，末端 frame 与数值 FK 毫米级吻合（`scripts/eco65_fk.py`）
-- ✅ 扫描轨迹正确执行（不再钻到桌下）；重建后工件正常出现
-- ✅ 圈选 ROI + Plan Tool Paths 成功；**靠机械臂一侧半圆区域 Generate Motion Plan 已通过**（求解器 `OPT_CONVERGED`、无碰撞、样条时间参数化成功）——确认 eco65 的 IK / 运动规划链路本身正常，此前整条 tool path 位姿 IK 0/47 **不是求解器假阴性**
-- ⚠️ 其余区域**姿态可达性受限**：需沿 mesh 法线（~32° 大倾角）贴附的面，在现底座朝向 + `sand_tcp` 安装 RPY（继承自 hc10）下仍不可达
+---
 
-**下一步方向**（详见 `PROGRESS_2026-09-03.md` §三·1/§四/§五）：
-1. 先把已可达半圆区域的「执行打磨」跑通，验证闭环最后一环；
-2. 重新设计 `sand_tcp_joint` 安装 RPY，或给底座**加俯仰/偏航旋转**再搜可达摆放（纯平移不改变相对 baselink 的姿态需求），提升整面姿态可达率；
-3. 找到能"整面带姿态打磨"的布局 → 改 `table_to_base` → 重启容器 → 重新框 ROI → 走通执行打磨，闭环整个流程。
+## 五、复现（下次真机测试直接照做）
 
-## 目录结构
+```bash
+# 1) 宿主驱动 + 真机容器（真机须已上电、零位）
+./scripts/start_real.sh
+#    验收：/joint_states 刷新（6 关节≈0）、RViz 显示真机模型
 
-```text
-config/        SNP / RViz / 工具路径规划参数（eco65 版）
-launch/        ros2 launch 文件（start / test）
-urdf/          workcell.xacro + rm_description/（eco65 模型 xacro）
-meshes/        eco65 STL + 平移后的 part_scan.ply
-scripts/       restart_demo.sh、eco65 FK/IK/工具路径分析脚本
-docs/          PROGRESS、USAGE_GUIDE 等说明文档
-docker/        compose.sim.yml + Dockerfile.custom（自定义镜像）
-motoros2/      motoros2 配置（joint1-6）
-runtime/       仿真运行产物（results_mesh.ply 等，不入库）
+# 2) eco65 原生真机 MoveIt —— 阶段2 硬验收（复现实动）
+./scripts/start_real_moveit.sh        # GUI 在 DISPLAY=:12.0
+#    在 MoveIt RViz(Motion Planning, group=rm_group) 拖末端 marker → Plan & Execute → 真机动
+#    停止：./scripts/start_real_moveit.sh --stop
+
+# 3) 想绕开 GUI 直接发轨迹 / 归位
+ROS_DOMAIN_ID=10 python3 scripts/send_fjt.py 0 0 0 0 0 0      # 归零
+ROS_DOMAIN_ID=10 python3 scripts/send_fjt.py 0.5 -0.3 0.9 0 0 0  # 指定弧度
 ```
 
-## 迁移到真机（规划）
+---
 
-仿真闭环跑通后，在宿主机 Humble 环境通过 `motoros2` 连接**真实 eco65**，
-把「扫描 → 重建 → 工具路径 → 运动规划 → 打磨」流程整体平移到真机。由于本版本刻意保持
-`ros2_rm_robot` 原生栈，仿真与真机之间无需更换控制器接口。
+## 六、下一步（阶段 3 重定义）
+
+不再走 SNP 的 RViz BT 主流程。方向：
+1. **SNP 容器离线算一条打磨轨迹**（mesh + noether + 运动规划，容器内可行）
+2. 轨迹导出 / 转发 → **eco65 原生 MoveIt 或 `send_fjt.py` 在真机执行** —— 打通「SNP 算轨迹 → eco65 真机执行」最小闭环
+3. （可选，阶段 4/5）真相机扫描重建 → 全流程打磨；已知硬件限制：工件超出近侧半圆部分不可达
+
+---
+
+*完整架构 / 踩坑 / 数据流见个人 memory：`snp-real-robot-migration.md`（~/.claude/projects/…/memory/）。推送仅限 `eco65-backup`（Zzh052500/snp-eco65-polishing-simulation），`origin` 为上游只读勿推。*

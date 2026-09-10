@@ -114,12 +114,44 @@ ROS_DOMAIN_ID=10 python3 scripts/send_fjt.py 0.5 -0.3 0.9 0 0 0  # 指定弧度
 
 ---
 
-## 六、下一步（阶段 3 重定义）
+## 六、阶段 3 —— 离线轨迹生成 + 真机执行闭环（2026-09-10 ✅）
 
-不再走 SNP 的 RViz BT 主流程。方向：
-1. **SNP 容器离线算一条打磨轨迹**（mesh + noether + 运动规划，容器内可行）
-2. 轨迹导出 / 转发 → **eco65 原生 MoveIt 或 `send_fjt.py` 在真机执行** —— 打通「SNP 算轨迹 → eco65 真机执行」最小闭环
-3. （可选，阶段 4/5）真相机扫描重建 → 全流程打磨；已知硬件限制：工件超出近侧半圆部分不可达
+**核心路线**：不走 SNP RViz BT 主流程（真机URDF下无法启动），改为离线生成轨迹 + eco65原生执行。
+
+**Phase 3.1 - 轨迹离线生成**（✅ bd13d2d）
+- `scripts/generate_trajectory.py`：离线生成打磨轨迹 YAML
+- 输出格式：`joint_names` + trajectory points（6 关节角度时间序列）
+
+**Phase 3.2 - 轨迹格式转换**（✅ bd13d2d）
+- `scripts/convert_trajectory_to_fjt.py`：YAML → ROS JointTrajectory 消息
+- 支持模式：格式验证 / 真机直接执行（`--execute` + `ROS_DOMAIN_ID=10`）
+
+**Phase 3.3 - 真机端到端验证**
+使用流程：
+```bash
+# 1) 真机驱动启动
+./scripts/start_real.sh
+
+# 2) 离线生成轨迹
+python3 scripts/generate_trajectory.py
+
+# 3) 格式验证
+python3 scripts/convert_trajectory_to_fjt.py runtime/snp_home/test_trajectory.yaml
+
+# 4) 真机执行
+export ROS_DOMAIN_ID=10
+python3 scripts/convert_trajectory_to_fjt.py runtime/snp_home/test_trajectory.yaml --execute
+```
+
+详见 [`docs/PHASE3_TRAJECTORY_EXECUTION.md`](docs/PHASE3_TRAJECTORY_EXECUTION.md)。
+
+---
+
+## 七、下一步（阶段 4+）
+
+1. **noether 集成**：真正从 mesh 生成工具路径，替换测试轨迹
+2. **motion_planning 离线**：在 SNP 容器外离线规划，规避 tesseract 编译问题
+3. **真相机扫描**：全流程打磨（扫描→规划→执行）；已知限制：超出近侧半圆不可达
 
 ---
 

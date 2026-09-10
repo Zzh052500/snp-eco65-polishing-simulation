@@ -1,9 +1,11 @@
 # SNP · RM-ECO65 真机迁移 —— 阶段性总结
 
-> **分支 `zhenjiqianyi` · 阶段记录 2026-09-09**（真机迁移第 1~2 天 09-08/09-09）
-> 本 README 是**真机迁移这一阶段**的权威快照。迁移前的仿真阶段（eco65 换臂打磨仿真闭环）见
-> [`docs/PROGRESS_2026-09-03.md`](docs/PROGRESS_2026-09-03.md) 与 [`docs/USAGE_GUIDE_ECO65_CN.md`](docs/USAGE_GUIDE_ECO65_CN.md)
+> **分支 `zhenjiqianyi` · 最新阶段记录 2026-09-10**（真机迁移第 1~3 天：09-08/09-09/09-10）
+> 本 README 是**真机迁移全进度**的权威快照（阶段1-3已完成，阶段4+规划中）。
+> 迁移前的仿真阶段（eco65 换臂打磨仿真闭环）见 [`docs/PROGRESS_2026-09-03.md`](docs/PROGRESS_2026-09-03.md) 与 [`docs/USAGE_GUIDE_ECO65_CN.md`](docs/USAGE_GUIDE_ECO65_CN.md)
 > （旧版 README 内容已随 git 历史完整保留，最末提交 09-04）。
+> 
+> **完整文档索引**：[阶段3详细流程](docs/PHASE3_TRAJECTORY_EXECUTION.md) | [执行方案评估](docs/REAL_ROBOT_EXECUTION_OPTIONS.md) | [架构与决策记录](../../.claude/projects/-home-liangfx-Desktop/memory/snp-real-robot-migration.md)
 
 把 SNP Automate 2023 打磨系统从 **Motoman + MotoROS2** 换到 **睿尔曼 RM-ECO65**，并把仿真流程搬到**真机**。核心判断贯穿全程：**绕开 SNP 自带 motoros2，用 eco65 自己的 driver/control 驱动真机。**
 
